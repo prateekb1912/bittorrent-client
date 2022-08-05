@@ -30,6 +30,12 @@ class Encoder:
             return self._encode_int(data)
         elif type(data) == list:
             return self._encode_list(data)
+        elif type(data) == bytes:
+            return self._encode_bytes(data)
+        elif type(data) == dict or type(data) == OrderedDict:
+            return self._encode_dict(data)
+        else: 
+            return None
     
     def _encode_string(self, data):
         return str.encode(str(len(data))+':' + data)
@@ -37,20 +43,40 @@ class Encoder:
     def _encode_int(self, data):
         return str.encode('i'+str(data)+'e')
 
+    def _encode_bytes(self, data):
+        res = bytearray()
+        res += str.encode(str(len(data)))
+        res += b':'
+        res += data
+        
+        return res
+
     def _encode_list(self, data):
         
-        res = 'l'
+        res = bytearray('l', 'utf-8')
+        res += b''.join([self.encode_next(d) for d in data])        
+        res += b'e'
 
-        for elem in data:
-            if type(elem) == str:
-                res += f'{len(elem)}:{elem}'
-            elif type(elem) == int:
-                res += f'i{elem}e'
-        
-        res += 'e'
+        return res
+    
+    def _encode_dict(self, data):
+        res = bytearray('d', 'utf-8')
 
-        return str.encode(res)
+        for k,v in data.items():
+            key = self.encode_next(k)
+            val = self.encode_next(v)
 
-encoder = Encoder(['spam', 'eggs', 123])
+            if key and val:
+                res += key
+                res += val
+            else:
+                raise RuntimeError('Bad dict')
+            
+        res += b'e'
+        return res
+d = OrderedDict()
+d['cow'] = 'moo'
+d['spam'] = 'eggs'
 
+encoder = Encoder(d)
 print(encoder.encode())
