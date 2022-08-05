@@ -96,7 +96,7 @@ class Decoder:
         self._data = data
         self._index = 0
 
-    def decode(self, data):
+    def decode(self):
         """
             Decodes the bencoded data and returns the matching python object
 
@@ -109,6 +109,10 @@ class Decoder:
         elif c == TOKEN_INTEGER:
             self._consume()
             return self._decode_int()
+        elif c.isdigit():
+            self._consume()
+            self._consume()
+            return self._decode_str(int(c))
 
 
     def _peek(self):
@@ -126,3 +130,14 @@ class Decoder:
             Read the next character from the data
         """
         self._index += 1
+    
+    def _decode_int(self):
+        occ = self._data.index(TOKEN_END, self._index)
+        res = self._data[self._index:occ]
+        return int(res)
+
+    def _decode_str(self, num):
+        return self._data[self._index:self._index+num].decode('utf-8')
+
+
+print(Decoder(b'4:eggs').decode())
