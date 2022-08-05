@@ -1,5 +1,13 @@
 from collections import OrderedDict
 
+# Tokens indicating the start of data in the bencoded sequence
+
+TOKEN_INTEGER = b'i'
+TOKEN_LIST = b'l'
+TOKEN_DICT = b'd'
+TOKEN_END = b'e'
+
+
 class Encoder:
     """
         Encodes a python object to a bencoded sequence of bytes.
@@ -74,9 +82,47 @@ class Encoder:
             
         res += b'e'
         return res
-d = OrderedDict()
-d['cow'] = 'moo'
-d['spam'] = 'eggs'
 
-encoder = Encoder(d)
-print(encoder.encode())
+
+class Decoder:
+    """
+        Decodes a bencoded sequence of bytes
+    """
+
+    def __init__(self, data:bytes):
+        if not isinstance(data, bytes):
+            raise TypeError("Argument 'data' must be of type - 'bytes' ")
+        
+        self._data = data
+        self._index = 0
+
+    def decode(self, data):
+        """
+            Decodes the bencoded data and returns the matching python object
+
+            :return A python object representing the bencoded data
+        """
+        c = self._peek()
+
+        if c is None:
+            raise EOFError('Unexpected end-of-file')
+        elif c == TOKEN_INTEGER:
+            self._consume()
+            return self._decode_int()
+
+
+    def _peek(self):
+        """
+            Returns the next character of the bencoded data 
+        """
+
+        if self._index + 1 >= len(self._data):
+            return None
+        
+        return self._data[self._index: self._index + 1]
+
+    def _consume(self):
+        """
+            Read the next character from the data
+        """
+        self._index += 1
