@@ -113,6 +113,8 @@ class Decoder:
             self._consume()
             self._consume()
             return self._decode_str(int(c))
+        elif c == TOKEN_LIST:
+            return self._decode_list()
 
 
     def _peek(self):
@@ -140,4 +142,4 @@ class Decoder:
         return self._data[self._index:self._index+num].decode('utf-8')
 
 
-print(Decoder(b'4:eggs').decode())
+print(Decoder(b'i4e').decode())
