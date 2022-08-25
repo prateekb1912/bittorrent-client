@@ -109,13 +109,22 @@ class Decoder:
         elif c == TOKEN_INTEGER:
             self._consume()
             return self._decode_int()
-        elif c.isdigit():
+        elif c in b'0123456789':
             self._consume()
             self._consume()
             return self._decode_str(int(c))
         elif c == TOKEN_LIST:
             self._consume()
             return self._decode_list()
+        elif c == TOKEN_DICT:
+            self._consume()
+            return self._decode_dict()
+        elif c == TOKEN_END:
+            return None
+        else:
+            raise RuntimeError('Invalid token read at {0}'.format(
+                str(self._index)))
+
 
 
     def _peek(self):
@@ -137,10 +146,34 @@ class Decoder:
     def _decode_int(self):
         occ = self._data.index(TOKEN_END, self._index)
         res = self._data[self._index:occ]
+        self._index = occ
         return int(res)
 
     def _decode_str(self, num):
-        return self._data[self._index:self._index+num].decode('utf-8')
+        res = f"{self._data[self._index:self._index+num]}"
+        self._index = self._index+num
+
+        return res
+
+    
+    def _decode_list(self):
+        res = []
+
+        while self._data[self._index: self._index+1] != TOKEN_END:
+            res.append(self.decode())
+        
+        self._consume()
+
+        return res
+
+    def _decode_dict(self):
+        res = OrderedDict()
+        while self._data[self._index: self._index + 1] != TOKEN_END:
+            key = self.decode()
+            obj = self.decode()
+            res[key] = obj
+        self._consume()  # The END token
+        return res
 
 
-print(Decoder(b'li123e6:Endoree').decode())
+print(Decoder(b'l4:spam4:eggsi123ee').decode())
