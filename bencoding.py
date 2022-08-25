@@ -114,6 +114,7 @@ class Decoder:
             self._consume()
             return self._decode_str(int(c))
         elif c == TOKEN_LIST:
+            self._consume()
             return self._decode_list()
 
 
@@ -142,4 +143,4 @@ class Decoder:
         return self._data[self._index:self._index+num].decode('utf-8')
 
 
-print(Decoder(b'i4e').decode())
+print(Decoder(b'li123e6:Endoree').decode())
